@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <script type="module" src= "{{ url_for('static',filename='demo.js') }}" defer></script>
+    <meta charset="utf-8">
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.1/control_utils.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils@0.3/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.3.1621277220/pose.js" crossorigin="anonymous"></script>
+    <style>
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  position:absolute;
+  top: 50%;
+  left: 45%;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+    </style>
+</head>
+<body style="background-color:#000000;">
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow text-center" style="margin-top:1em;">
+                <img class="card-img-top" width=100 src="{{url_for('static', filename='logo.svg')}}" />
+                <div class="card-body" style="background-color:#d5f3ed;">
+                    <video class="input_video" hidden></video>
+                    <!-- <div class="loading"> -->
+                        <!-- <div class="spinner"></div> -->
+                        <!-- <div class="message">Loading</div> -->
+                    <!-- </div> -->
+                    <div id="canvas_div"> 
+                        <div class="loader"></div>
+                        <canvas class="output_canvas"></canvas>
+                    </div>
+                    <div id="selectExerciseOptions" style="display:inline-flex;margin-top:0.5em;">
+                        <select class="form-control form-control-lg" id="pickex" data-style="btn-primary" aria-label="select_exercise" style="margin-right:0.5em">
+                            <option value="shoulderpress">Shoulder Press</option>
+                            <option value="shoulderflexion">Shoulder Flexion</option>
+                            <option value="bridge">Bridge</option>
+                            <option value="laterallegraise">Lateral Leg Raise</option>
+                            <option value="hamstring">Hamstring Stretch</option>
+                            <option value="headstretching">Head Flex(L)</option>
+                        </select>
+                        <select class="form-control form-control-lg" id="picksets" data-style="btn-primary" style="margin-right:0.5em;">
+                            <option value=0 selected disabled>Pick # of sets</option>
+                            <option value=1>1</option>
+                            <option value=2>2</option>
+                            <option value=3>3</option>
+                            <option value=4>4</option>
+                            <option value=5>5</option>
+                        </select>
+                        <select class="form-control form-control-lg" id="pickreps" data-style="btn-primary" style="margin-right:0.5em;">
+                            <option value=0 selected disabled>Pick # of reps</option>
+                            <option value=5>5</option>
+                            <option value=10>10</option>
+                        </select>
+                        <button type="submit" data-bs-toggle="button" id="submitExerciseButton" class="btn btn-primary">Start</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="col-md-4" style="margin-top:1em;margin-bottom:1em;">
+            <div class="card shadow text-center">
+                <div class="card-body align-items-center">
+                    <div class="text-xs font-weight-bold text-info text-uppercase"><i class="bi bi-heart"></i>
+                        Welcome to AI Psychiatrist!</div>
+                    <iframe id="video" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase"><i class="bi bi-arrows-move"></i>
+                        Range of Motion</div>
+                    <div class = "row no-gutters">
+                        <div class="text-uppercase font-weight-bold d-inline-block w-50">Left</div>
+                        <div class="d-inline-block w-50">Average: <span id="avgleftrom"></span></div>
+                    </div>
+                    <div class = "row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="leftrom2">%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="leftrom"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class = "row no-gutters">
+                        <div class="text-uppercase font-weight-bold d-inline-block w-50">Right</div>
+                        <div class="d-inline-block w-50">Average: <span id="avgrightrom"></span></div>
+                    </div>
+                    <div class = "row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="rightrom2">%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="rightrom"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase"><i class="bi bi-arrow-repeat"></i>
+                        Rep Count</div>
+                    <p class="mb-0 mr-3 font-weight-bold text-gray-800 display-2" id="repcount">0</p>
+                </div>
+            </div>
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase"><i class="bi bi-dumbbell"></i>
+                        Set Count</div>
+                    <p class="mb-0 mr-3 font-weight-bold text-gray-800 display-2" id="setcount">0</p>
+                </div>
+            </div>
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase"><i class="bi bi-stopwatch"></i> Rep time</div>
+                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800 display-4" id="reptime">0s</div>
+                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">Average: <span id="avgreptime">0s</span></div>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+<div>
+</div>
+  <div hidden class="control-panel">
+  </div>
+</div>
+<script>
+    // Run shoulder.py code
+    fetch('/run_shoulder_py', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+</script>
+<script>
+    // Retrieve the workout query parameter from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const workout = urlParams.get('workout');
+
+    // Set the selected workout in the dropdown
+    if (workout) {
+        const dropdown = document.getElementById('pickex');
+        const option = dropdown.querySelector(`option[value="${workout}"]`);
+        if (option) {
+            option.selected = true;
+        }
+    }
+</script>
+<!-- Add this script to your demo.html file -->
+<script>
+    // Function to handle workout initialization
+    function initializeWorkout() {
+        // Get the selected workout type from the dropdown menu
+        var selectedWorkout = document.getElementById('workoutType').value;
+
+        // Check if the selected workout is "Head Flex(L)"
+        if (selectedWorkout === "Head Flex(L)") {
+            // Send a request to the Flask API endpoint to fetch workout data
+            fetch('/get-workout-data', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update UI elements with the workout data
+                // For example, update exercise type, repetitions, sets, etc.
+                document.getElementById('exerciseType').innerText = data.exerciseType;
+                document.getElementById('repetitions').innerText = data.repetitions;
+                document.getElementById('sets').innerText = data.sets;
+            })
+            .catch(error => {
+                console.error('Error fetching workout data:', error);
+            });
+        }
+    }
+
+    // Add event listener to the dropdown menu
+    document.getElementById('workoutType').addEventListener('change', initializeWorkout);
+</script>
+<script>
+    // Function to update total reps based on selected reps and sets
+    function updateTotalReps() {
+        var selectedOption = document.getElementById('pickreps').value; // Updated ID here
+        var reps = parseInt(selectedOption) * 10; // Assuming 10 reps per set
+        document.getElementById('repCount').innerText = reps; // Updated ID here
+    }
+
+    // Function to fetch workout data from Flask API and update UI
+    function fetchWorkoutData() {
+        // Fetch workout data from Flask API
+        fetch('/get-workout-data', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update UI elements with workout data
+            document.getElementById('exerciseType').innerText = data.exerciseType;
+            document.getElementById('repetitions').innerText = data.repetitions;
+            document.getElementById('sets').innerText = data.sets;
+        })
+        .catch(error => {
+            console.error('Error fetching workout data:', error);
+        });
+    }
+
+    // Event listener for dropdown change to update total reps
+    document.getElementById('pickreps').addEventListener('change', updateTotalReps); // Updated ID here
+
+    // Call fetchWorkoutData() to fetch and update workout data on page load
+    fetchWorkoutData();
+</script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+</html>

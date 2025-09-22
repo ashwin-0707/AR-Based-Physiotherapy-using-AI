@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style1.css') }}">
+    <title>THE AI PHYSI| Second Page</title>
+   
+</head>
+<body>
+<div class="wrapper">
+    <nav class="nav">
+        <div class="nav-logo">
+            <p>THE AI PHYSI.</p>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <ul>
+                <li><a href="index.html" class="link">Home</a></li>
+                <li><a href="#" class="link">Blog</a></li>
+                <li><a href="#" class="link">Services</a></li>
+                <li><a href="#" class="link">About</a></li>
+            </ul>
+        </div>
+        <div class="nav-button">
+            <button class="btn" id="logoutBtn">Logout</button>
+        </div>
+        <div class="nav-menu-btn">
+            <i class="bx bx-menu" onclick="myMenuFunction()"></i>
+        </div>
+    </nav>
+
+    <div id="username" class="username"></div>
+    
+    <div class="container">
+        <div class="user-info">
+            Welcome, <span class="loading-message">Loading...</span> <!-- Use class instead of id -->
+        </div>
+        <div class="image-grid">
+            <div class="image-item" onclick="processBicepsCurls()">
+                <a href="/demo">
+                <img src="/static/images/image4.jpg" alt="Image 4">
+                <div class="image-text">ELBOW FLEXION</div>
+                </a>
+            </div>
+            <div class="image-item" onclick="processShoulderPress()">
+                <a href="/demo?workout=shoulderpress"><!-- Link to demo.html -->
+                <img src="/static/images/image1.jpg" alt="Image 1">
+                <div class="image-text">SHOULDER</div>
+                </a>
+            </div>
+            <div class="image-item" onclick="processTricepPullover()">
+                <a href="/demo?workout=shoulderflexion">
+                <img src="/static/images/image2.jpg" alt="Image 2">
+                <div class="image-text">SHOULDER FLEXION</div>
+                </a>
+            </div>
+            <div class="image-item" onclick="processJumpingJacks()">
+                <a href="/demo?workout=hamstring">
+                <img src="/static/images/image3.jpg" alt="Image 3">
+                <div class="image-text">HAMSTRING</div>
+                </a>
+            </div>
+            <div class="image-item" onclick="processPushUps()">
+                <img src="/static/images/image3.jpg" alt="Image 3">
+                <div class="image-text">PUSH UPS</div>
+            </div>
+            <div class="image-item" onclick="processLateralRaises()">
+                <a href="/demo?workout=laterallegraise">
+                <img src="/static/images/image3.jpg" alt="Image 3">
+                <div class="image-text">LATERAL RAISES</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to retrieve and display the logged-in username
+    window.onload = function() {
+        var loggedInUser = localStorage.getItem('loggedInUser');
+        if (loggedInUser) {
+            var welcomeMessage = "Welcome, " + loggedInUser; // Concatenate "Welcome" with the username
+            document.getElementById('username').textContent = welcomeMessage;
+            // Remove loading message
+            document.querySelector('.loading-message').style.display = 'none';
+        }
+    }
+
+    // JavaScript functions to trigger processing for each workout image
+    function processBicepsCurls() {
+        fetch('/elbow_flexion', { method: 'POST' })  // Make an HTTP POST request to the /elbow_flexion endpoint
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+    function processShoulderPress() {
+        fetch('/process_shoulder_press', { method: 'POST' })  // Make an HTTP POST request to the /process_shoulder_press endpoint
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+    function processTricepPullover() {
+        fetch('/process_tricep_pullover', { method: 'POST' })  // Make an HTTP POST request to the /process_tricep_pullover endpoint
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+    function processJumpingJacks() {
+        fetch('/process_jumping_jacks', { method: 'POST' })  // Make an HTTP POST request to the /process_jumping_jacks endpoint
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+    function processPushUps() {
+        fetch('/process_push_ups', { method: 'POST' })  // Make an HTTP POST request to the /process_push_ups endpoint
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+    function processLateralRaises() {
+        fetch('/process_lateral_raises', { method: 'POST' })  // Make an HTTP POST request to the /process_lateral_raises endpoint
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+</script>
+
+</body>
+</html>
